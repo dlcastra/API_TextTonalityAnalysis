@@ -85,5 +85,5 @@ class TextTonalityAnalysisService:
             return 0.0
 
         adjusted_polarity = abs(polarity_score) ** 0.8
-        adjusted_subjectivity = 1 - subjectivity_score ** 2
+        adjusted_subjectivity = 1 - subjectivity_score**2
         return adjusted_polarity * adjusted_subjectivity
