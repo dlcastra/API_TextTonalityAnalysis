@@ -17,7 +17,7 @@ class TranslatorService:
             result = await self.translator.translate(cleaned_text, dest=self.to_lang)
             return result.text, True
         except Exception as e:
-            return str(e), None
+            return f"TranslatorService {str(e)}", None
 
     async def clean_text(self):
         cleaning_args = ["\n", "\t", "\r", "\b"]

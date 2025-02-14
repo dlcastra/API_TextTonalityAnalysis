@@ -1,13 +1,8 @@
 import asyncio
 import re
 
-import aiofiles
-import fitz
-from docx import Document
 from textblob import TextBlob
 
-from src.app.utils import is_eng_text
-from src.app.services.translator import TranslatorService
 from src.app.models.analysis_statuses import (
     POLARITY_DESCRIPTIONS,
     POLARITY_RANGES,
@@ -16,43 +11,28 @@ from src.app.models.analysis_statuses import (
     OBJECTIVE_SENTIMENT_DESCRIPTIONS,
     OBJECTIVE_SENTIMENT_RANGES,
 )
+from src.app.services.text_extractor import ExtractTextorService
+from src.app.services.translator import TranslatorService
+from src.app.utils import is_eng_text
 
 
 class TextTonalityAnalysisService:
     def __init__(self):
+        self.text_extractor = ExtractTextorService()
         self.translator = TranslatorService()
 
     async def file_processing(self, file_path):
+        text, is_extracted = await self.text_extractor.extract_text(file_path)
+        if not is_extracted:
+            return "An error occurred while extracting the text", None
+
         try:
-            if file_path.endswith(".txt"):
-                return await self._analyse_text_from_txt(file_path), True
-            elif file_path.endswith(".docx"):
-                return await self._analyse_text_from_docx(file_path), True
-            elif file_path.endswith(".pdf"):
-                return await self._analyse_text_from_pdf(file_path), True
+            return await self._sentiment_analysis(text), True
         except Exception as e:
-            return str(e), None
-
-        return "Unsupported file type", None
-
-    async def _analyse_text_from_txt(self, file_path):
-        async with aiofiles.open(file=file_path, mode="r", encoding="utf-8") as file:
-            result = await file.read()
-            return await self._sentiment_analysis(result)
-
-    async def _analyse_text_from_docx(self, file_path):
-        doc = Document(file_path)
-        result = " ".join([para.text for para in doc.paragraphs if para.text.strip()])
-        return await self._sentiment_analysis(result)
-
-    async def _analyse_text_from_pdf(self, file_path):
-        doc = fitz.open(file_path)
-        result = " ".join([page.get_text() for page in doc.pages()])
-        return await self._sentiment_analysis(result)
+            return f"TextTonalityAnalysisService {str(e)}", None
 
     async def _sentiment_analysis(self, text):
         cleared_text = re.sub(r"\s*\n\s*", " ", text)
-
         if not await asyncio.to_thread(is_eng_text, cleared_text):
             cleared_text = await self.translator.translate_text(cleared_text)
 
