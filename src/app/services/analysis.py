@@ -1,3 +1,4 @@
+import asyncio
 import re
 
 import aiofiles
@@ -5,6 +6,8 @@ import fitz
 from docx import Document
 from textblob import TextBlob
 
+from src.app.utils import is_eng_text
+from src.app.services.translator import TranslatorService
 from src.app.models.analysis_statuses import (
     POLARITY_DESCRIPTIONS,
     POLARITY_RANGES,
@@ -16,6 +19,8 @@ from src.app.models.analysis_statuses import (
 
 
 class TextTonalityAnalysisService:
+    def __init__(self):
+        self.translator = TranslatorService()
 
     async def file_processing(self, file_path):
         try:
@@ -48,7 +53,10 @@ class TextTonalityAnalysisService:
     async def _sentiment_analysis(self, text):
         cleared_text = re.sub(r"\s*\n\s*", " ", text)
 
-        analysed_text = TextBlob(cleared_text)
+        if not await asyncio.to_thread(is_eng_text, cleared_text):
+            cleared_text = await self.translator.translate_text(cleared_text)
+
+        analysed_text = TextBlob(cleared_text[0])
         polarity = analysed_text.sentiment.polarity
         subjectivity = analysed_text.sentiment.subjectivity
         objective_sentiment_score = self._calculate_objective_sentiment(polarity, subjectivity)
