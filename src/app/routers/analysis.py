@@ -15,4 +15,5 @@ class AnalysisRequest(BaseModel):
 @router.post("/tonality")
 async def analyse_text_tonality(request: AnalysisRequest):
     result, status = await text_tonality_analysis_handler(request.s3_key)
+    result["s3_key"] = request.s3_key
     return await callback(callback_url=request.callback_url, status=status, data=result)
