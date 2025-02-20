@@ -36,7 +36,7 @@ class TextTonalityAnalysisService:
         if not await asyncio.to_thread(is_eng_text, cleared_text):
             cleared_text = await self.translator.translate_text(cleared_text)
 
-        analysed_text = TextBlob(cleared_text[0])
+        analysed_text = TextBlob(cleared_text)
         polarity = analysed_text.sentiment.polarity
         subjectivity = analysed_text.sentiment.subjectivity
         objective_sentiment_score = self._calculate_objective_sentiment(polarity, subjectivity)

@@ -1,10 +1,14 @@
+import asyncio
+
 from fastapi import FastAPI
 
 from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
+from src.app.handlers import process_sqs_messages
 from src.app.routers import analysis
+from src.settings.aws_confing import sqs_client
 
 app = FastAPI()
 app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
@@ -17,3 +21,8 @@ async def validation_exception_handler(request, exc):
         status_code=HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": errors},
     )
+
+
+@app.on_event("startup")
+async def startup_event():
+    await asyncio.create_task(process_sqs_messages(sqs_client))

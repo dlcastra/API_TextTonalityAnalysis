@@ -7,7 +7,6 @@ class ExtractTextorService:
     async def extract_text(self, file_path) -> tuple[str, None or True]:
         try:
             if file_path.endswith(".txt"):
-                print("HERE if .txt")
                 return await self._extract_text_from_txt(file_path), True
             elif file_path.endswith(".docx"):
                 return await self._extract_text_from_docx(file_path), True
