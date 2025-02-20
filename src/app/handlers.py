@@ -56,5 +56,6 @@ async def process_sqs_messages(sqs_client):
 
 async def handle_message(sqs_client, message: dict, s3_key: str, callback_url: str):
     result, status = await text_tonality_analysis_handler(s3_key)
+    result["s3_key"] = s3_key
     await callback(callback_url=callback_url, status=status, data=result)
     sqs_client.delete_message(QueueUrl=settings.AWS_SQS_QUEUE_URL, ReceiptHandle=message["ReceiptHandle"])
