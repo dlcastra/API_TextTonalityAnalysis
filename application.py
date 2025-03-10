@@ -1,6 +1,6 @@
 import asyncio
 
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 
 from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
@@ -11,7 +11,9 @@ from src.app.routers import analysis
 from src.settings.aws_confing import sqs_client
 
 app = FastAPI()
-app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
+api_router = APIRouter(prefix="/api/v1")
+api_router.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
+app.include_router(api_router)
 
 
 @app.exception_handler(RequestValidationError)

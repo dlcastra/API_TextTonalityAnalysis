@@ -3,7 +3,7 @@ import fitz
 from docx import Document
 
 
-class ExtractTextorService:
+class TextExtractorService:
     async def extract_text(self, file_path) -> tuple[str, None or True]:
         try:
             if file_path.endswith(".txt"):
@@ -13,7 +13,7 @@ class ExtractTextorService:
             elif file_path.endswith(".pdf"):
                 return await self._extract_text_from_pdf(file_path), True
         except Exception as e:
-            return f"ExtractTextorService {str(e)}", None
+            return f"TextExtractorService {str(e)}", None
 
         return "Unsupported file type", None
 

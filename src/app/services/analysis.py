@@ -11,15 +11,14 @@ from src.app.models.analysis_statuses import (
     OBJECTIVE_SENTIMENT_DESCRIPTIONS,
     OBJECTIVE_SENTIMENT_RANGES,
 )
-from src.app.services.text_extractor import ExtractTextorService
-from src.app.services.translator import TranslatorService
+from src.app.services import get_text_extractor_service, get_translator_service
 from src.app.utils import is_eng_text
 
 
 class TextTonalityAnalysisService:
     def __init__(self):
-        self.text_extractor = ExtractTextorService()
-        self.translator = TranslatorService()
+        self.text_extractor = get_text_extractor_service()
+        self.translator = get_translator_service()
 
     async def file_processing(self, file_path):
         text, is_extracted = await self.text_extractor.extract_text(file_path)
@@ -39,7 +38,7 @@ class TextTonalityAnalysisService:
         analysed_text = TextBlob(cleared_text)
         polarity = analysed_text.sentiment.polarity
         subjectivity = analysed_text.sentiment.subjectivity
-        objective_sentiment_score = self._calculate_objective_sentiment(polarity, subjectivity)
+        objective_sentiment_score = await self._calculate_objective_sentiment(polarity, subjectivity)
 
         analyse_data = await self._generate_status_and_description(polarity, subjectivity, objective_sentiment_score)
         response = {
@@ -68,7 +67,7 @@ class TextTonalityAnalysisService:
             "objective_sentiment_description": OBJECTIVE_SENTIMENT_DESCRIPTIONS.get(objective_sentiment_status.name),
         }
 
-    def _calculate_objective_sentiment(self, polarity_score, subjectivity_score):
+    async def _calculate_objective_sentiment(self, polarity_score, subjectivity_score):
         if subjectivity_score == 1:
             return 0.0
 
